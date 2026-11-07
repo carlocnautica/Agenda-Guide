@@ -129,10 +129,7 @@
     </div>
 
     <!-- Action Bar -->
-    <div class="flex justify-between items-center pt-4 border-t border-slate-200 text-xs text-slate-500">
-      <button id="exportBtn" class="flex items-center gap-1.5 hover:text-brand-600 transition-colors">
-        <i class="fa-solid fa-download"></i> Esporta Dati (JSON)
-      </button>
+    <div class="flex justify-end items-center pt-4 border-t border-slate-200 text-xs text-slate-500">
       <button id="clearDayBtn" class="flex items-center gap-1.5 text-red-500 hover:text-red-700 transition-colors">
         <i class="fa-solid fa-trash"></i> Svuota Giornata
       </button>
@@ -206,22 +203,36 @@
     </div>
   </div>
 
-  <script>
-    // Configurazione Slot Orari
+  <!-- Firebase integration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXXK6mvn4_4eY2NcogvLVhsih0hBDVgPU",
+      authDomain: "agenda-guide.firebaseapp.com",
+      projectId: "agenda-guide",
+      storageBucket: "agenda-guide.firebasestorage.app",
+      messagingSenderId: "46794941870",
+      appId: "1:46794941870:web:24604cd526f9896409d43f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
     const SLOTS_CONFIG = [
-      { id: "09:00", label: "09:00 - 10:00", period: "morning" },
-      { id: "10:00", label: "10:00 - 11:00", period: "morning" },
-      { id: "11:00", label: "11:00 - 12:00", period: "morning" },
-      { id: "14:00", label: "14:00 - 15:00", period: "afternoon" },
-      { id: "15:00", label: "15:00 - 16:00", period: "afternoon" },
-      { id: "16:00", label: "16:00 - 17:00", period: "afternoon" },
-      { id: "17:00", label: "17:00 - 18:00", period: "afternoon" }
+      { id: "09-00", label: "09:00 - 10:00", period: "morning" },
+      { id: "10-00", label: "10:00 - 11:00", period: "morning" },
+      { id: "11-00", label: "11:00 - 12:00", period: "morning" },
+      { id: "14-00", label: "14:00 - 15:00", period: "afternoon" },
+      { id: "15-00", label: "15:00 - 16:00", period: "afternoon" },
+      { id: "16-00", label: "16:00 - 17:00", period: "afternoon" },
+      { id: "17-00", label: "17:00 - 18:00", period: "afternoon" }
     ];
 
     let currentDate = new Date().toISOString().split('T')[0];
-    let bookings = JSON.parse(localStorage.getItem('driving_agenda_db')) || {};
+    let currentDayBookings = {};
 
-    // Elementi DOM
     const datePicker = document.getElementById('datePicker');
     const searchInput = document.getElementById('searchInput');
     const morningContainer = document.getElementById('morningSlots');
@@ -229,29 +240,26 @@
     const bookingModal = document.getElementById('bookingModal');
     const bookingForm = document.getElementById('bookingForm');
 
-    // Inizializzazione
     datePicker.value = currentDate;
 
-    function saveToStorage() {
-      localStorage.setItem('driving_agenda_db', JSON.stringify(bookings));
+    function listenToDay(date) {
+      const dayRef = ref(db, 'bookings/' + date);
+      onValue(dayRef, (snapshot) => {
+        currentDayBookings = snapshot.val() || {};
+        renderAgenda();
+      });
     }
 
     function renderAgenda() {
       morningContainer.innerHTML = '';
       afternoonContainer.innerHTML = '';
 
-      const dayBookings = bookings[currentDate] || {};
       const filterTerm = searchInput.value.toLowerCase().trim();
 
-      let bookedCount = 0;
-
       SLOTS_CONFIG.forEach(slot => {
-        const data = dayBookings[slot.id];
+        const data = currentDayBookings[slot.id];
         const isBooked = !!data;
 
-        if (isBooked) bookedCount++;
-
-        // Filtro di ricerca
         if (filterTerm && isBooked) {
           const match = data.name.toLowerCase().includes(filterTerm) ||
                         (data.school && data.school.toLowerCase().includes(filterTerm)) ||
@@ -271,7 +279,7 @@
               <span class="font-mono text-sm font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">${slot.label}</span>
               <span class="text-sm text-slate-400 italic">Nessun allievo prenotato</span>
             </div>
-            <button onclick="openBooking('${slot.id}')" class="self-start sm:self-auto px-3 py-1.5 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-lg text-xs font-semibold border border-brand-100 transition-all flex items-center gap-1.5">
+            <button data-slot="${slot.id}" class="btn-book self-start sm:self-auto px-3 py-1.5 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-lg text-xs font-semibold border border-brand-100 transition-all flex items-center gap-1.5">
               <i class="fa-solid fa-plus"></i> Prenota
             </button>
           `;
@@ -302,10 +310,10 @@
               </div>
             </div>
             <div class="flex items-center gap-2 self-end sm:self-auto">
-              <button onclick="openBooking('${slot.id}')" class="p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition-all" title="Modifica">
+              <button data-slot="${slot.id}" class="btn-book p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition-all" title="Modifica">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
-              <button onclick="deleteBooking('${slot.id}')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg transition-all" title="Elimina">
+              <button data-slot="${slot.id}" class="btn-delete p-2 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg transition-all" title="Elimina">
                 <i class="fa-solid fa-trash-can"></i>
               </button>
             </div>
@@ -316,9 +324,16 @@
         else afternoonContainer.appendChild(slotEl);
       });
 
-      // Aggiorna metriche
+      document.querySelectorAll('.btn-book').forEach(btn => {
+        btn.addEventListener('click', () => openBooking(btn.dataset.slot));
+      });
+
+      document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteBooking(btn.dataset.slot));
+      });
+
       const total = SLOTS_CONFIG.length;
-      const actualBooked = Object.keys(dayBookings).length;
+      const actualBooked = Object.keys(currentDayBookings).length;
       document.getElementById('statTotal').innerText = total;
       document.getElementById('statBooked').innerText = actualBooked;
       document.getElementById('statFree').innerText = total - actualBooked;
@@ -327,7 +342,7 @@
 
     function openBooking(timeSlot) {
       document.getElementById('modalTimeSlot').value = timeSlot;
-      const existing = (bookings[currentDate] || {})[timeSlot];
+      const existing = currentDayBookings[timeSlot];
       
       const slotObj = SLOTS_CONFIG.find(s => s.id === timeSlot);
       document.getElementById('modalSub').innerText = `Ora: ${slotObj.label} del ${currentDate}`;
@@ -348,14 +363,7 @@
 
     function deleteBooking(timeSlot) {
       if (confirm("Vuoi cancellare questa prenotazione?")) {
-        if (bookings[currentDate]) {
-          delete bookings[currentDate][timeSlot];
-          if (Object.keys(bookings[currentDate]).length === 0) {
-            delete bookings[currentDate];
-          }
-          saveToStorage();
-          renderAgenda();
-        }
+        remove(ref(db, `bookings/${currentDate}/${timeSlot}`));
       }
     }
 
@@ -363,9 +371,7 @@
       e.preventDefault();
       const timeSlot = document.getElementById('modalTimeSlot').value;
       
-      if (!bookings[currentDate]) bookings[currentDate] = {};
-
-      bookings[currentDate][timeSlot] = {
+      const payload = {
         name: document.getElementById('studentName').value,
         school: document.getElementById('schoolName').value,
         license: document.getElementById('licenseType').value,
@@ -373,15 +379,13 @@
         notes: document.getElementById('bookingNotes').value
       };
 
-      saveToStorage();
+      set(ref(db, `bookings/${currentDate}/${timeSlot}`), payload);
       bookingModal.classList.add('hidden');
-      renderAgenda();
     });
 
-    // Event Listeners Navigazione Data
     datePicker.addEventListener('change', (e) => {
       currentDate = e.target.value;
-      renderAgenda();
+      listenToDay(currentDate);
     });
 
     document.getElementById('prevDay').addEventListener('click', () => {
@@ -389,7 +393,7 @@
       d.setDate(d.getDate() - 1);
       currentDate = d.toISOString().split('T')[0];
       datePicker.value = currentDate;
-      renderAgenda();
+      listenToDay(currentDate);
     });
 
     document.getElementById('nextDay').addEventListener('click', () => {
@@ -397,7 +401,7 @@
       d.setDate(d.getDate() + 1);
       currentDate = d.toISOString().split('T')[0];
       datePicker.value = currentDate;
-      renderAgenda();
+      listenToDay(currentDate);
     });
 
     searchInput.addEventListener('input', renderAgenda);
@@ -407,28 +411,15 @@
 
     document.getElementById('clearDayBtn').addEventListener('click', () => {
       if (confirm(`Sei sicuro di voler cancellare tutte le prenotazioni del ${currentDate}?`)) {
-        delete bookings[currentDate];
-        saveToStorage();
-        renderAgenda();
+        remove(ref(db, `bookings/${currentDate}`));
       }
-    });
-
-    document.getElementById('exportBtn').addEventListener('click', () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bookings, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `agenda_guide_${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
     });
 
     function escapeHtml(str) {
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // Primo avvio
-    renderAgenda();
+    listenToDay(currentDate);
   </script>
 </body>
 </html>
