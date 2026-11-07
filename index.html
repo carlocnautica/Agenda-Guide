@@ -203,10 +203,10 @@
     </div>
   </div>
 
-  <!-- Firebase integration -->
+    <!-- Firebase integration (Firestore) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBXXK6mvn4_4eY2NcogvLVhsih0hBDVgPU",
@@ -218,7 +218,7 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const db = getFirestore(app);
 
     const SLOTS_CONFIG = [
       { id: "09:00", label: "09:00 - 10:00", period: "morning" },
@@ -232,6 +232,7 @@
 
     let currentDate = new Date().toISOString().split('T')[0];
     let currentDayBookings = {};
+    let unsubscribe = null;
 
     const datePicker = document.getElementById('datePicker');
     const searchInput = document.getElementById('searchInput');
@@ -243,12 +244,20 @@
     datePicker.value = currentDate;
 
     function listenToDay(date) {
-      const dayRef = ref(db, 'bookings/' + date);
-      onValue(dayRef, (snapshot) => {
-        currentDayBookings = snapshot.val() || {};
+      if (unsubscribe) unsubscribe(); // Interrompi l'ascolto del giorno precedente
+
+      // In Firestore salviamo i dati strutturati per data dentro una collezione "bookings"
+      const dayRef = doc(db, 'bookings', date);
+      
+      unsubscribe = onSnapshot(dayRef, (docSnap) => {
+        if (docSnap.exists()) {
+          currentDayBookings = docSnap.data();
+        } else {
+          currentDayBookings = {};
+        }
         renderAgenda();
       }, (error) => {
-        console.error("Errore lettura Firebase:", error);
+        console.error("Errore Firestore:", error);
         renderAgenda();
       });
     }
@@ -335,7 +344,6 @@
       document.getElementById('statOccupancy').innerText = Math.round((actualBooked / total) * 100) + '%';
     }
 
-    // Funzioni globali per i click inline
     window.openBookingModal = function(timeSlot) {
       document.getElementById('modalTimeSlot').value = timeSlot;
       const existing = currentDayBookings[timeSlot];
@@ -357,17 +365,25 @@
       bookingModal.classList.remove('hidden');
     }
 
-    window.deleteBookingSlot = function(timeSlot) {
+    window.deleteBookingSlot = async function(timeSlot) {
       if (confirm("Vuoi cancellare questa prenotazione?")) {
-        remove(ref(db, `bookings/${currentDate}/${timeSlot}`));
+        delete currentDayBookings[timeSlot];
+        try {
+          await setDoc(doc(db, 'bookings', currentDate), currentDayProviderPayload());
+        } catch (e) {
+          // Salva aggiornato su Firestore rimuovendo il singolo slot
+          const updated = { ...currentDayBookings };
+          delete updated[timeSlot];
+          await setDoc(doc(db, 'bookings', currentDate), updated);
+        }
       }
     }
 
-    bookingForm.addEventListener('submit', (e) => {
+    bookingForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const timeSlot = document.getElementById('modalTimeSlot').value;
       
-      const payload = {
+      currentDayBookings[timeSlot] = {
         name: document.getElementById('studentName').value,
         school: document.getElementById('schoolName').value,
         license: document.getElementById('licenseType').value,
@@ -375,8 +391,13 @@
         notes: document.getElementById('bookingNotes').value
       };
 
-      set(ref(db, `bookings/${currentDate}/${timeSlot}`), payload);
-      bookingModal.classList.add('hidden');
+      try {
+        await setDoc(doc(db, 'bookings', currentDate), currentDayBookings);
+        bookingModal.classList.add('hidden');
+      } catch (err) {
+        console.error("Errore durante il salvataggio su Firestore:", err);
+        alert("Errore nel salvataggio. Controlla la console.");
+      }
     });
 
     datePicker.addEventListener('change', (e) => {
@@ -397,7 +418,6 @@
       d.setDate(d.getDate() + 1);
       currentDate = d.toISOString().split('T')[0];
       datePicker.value = currentDate;
-      listenToTest(currentDate); // fallback or standard
       listenToDay(currentDate);
     });
 
@@ -406,9 +426,10 @@
     document.getElementById('closeModal').addEventListener('click', () => bookingModal.classList.add('hidden'));
     document.getElementById('cancelModal').addEventListener('click', () => bookingModal.classList.add('hidden'));
 
-    document.getElementById('clearDayBtn').addEventListener('click', () => {
+    document.getElementById('clearDayBtn').addEventListener('click', async () => {
       if (confirm(`Sei sicuro di voler cancellare tutte le prenotazioni del ${currentDate}?`)) {
-        remove(ref(db, `bookings/${currentDate}`));
+        currentDayBookings = {};
+        await setDoc(doc(db, 'bookings', currentDate), {});
       }
     });
 
@@ -416,8 +437,8 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // Avvio ascolto iniziale
     listenToDay(currentDate);
   </script>
+
 </body>
 </html>
