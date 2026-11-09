@@ -554,7 +554,7 @@
                 const checked = allowedLics.includes(lic);
                 return `
                   <label class="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer hover:bg-slate-100 transition-colors">
-                    <input type="checkbox" value="${lic}" class="config-lic-checkbox data-slot-${slot.id} rounded text-brand-600 focus:ring-brand-500" ${checked ? 'checked' : ''}>
+                    <input type="checkbox" value="${lic}" data-slot-id="${slot.id}" class="config-lic-checkbox rounded text-brand-600 focus:ring-brand-500" ${checked ? 'checked' : ''}>
                     ${lic}
                   </label>
                 `;
@@ -572,7 +572,8 @@
       const newSettings = {};
       SLOTS_CONFIG.forEach(slot => {
         const enableToggle = document.querySelector(`.config-enable-toggle[data-slot="${slot.id}"]`);
-        const licCheckboxes = document.querySelectorAll(`.config-lic-checkbox.data-slot-${slot.id}:checked`);
+        // Usiamo un selettore basato sull'attributo data-slot-id per evitare errori coi due punti dell'orario
+        const licCheckboxes = document.querySelectorAll(`.config-lic-checkbox[data-slot-id="${slot.id}"]:checked`);
         
         const enabled = enableToggle ? enableToggle.checked : true;
         const allowedLicenses = Array.from(licCheckboxes).map(cb => cb.value);
