@@ -25,7 +25,6 @@
   </script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen font-sans flex flex-col">
-
   <!-- Header -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -38,12 +37,12 @@
           <p class="text-xs text-slate-500 mt-1">Gestione Prenotazioni Orarie</p>
         </div>
       </div>
-
-      <!-- Data Picker & Search -->
+      
+      <!-- Data Picker, Search & Config Button -->
       <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
         <div class="relative flex-1 sm:w-64">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-          <input type="text" id="searchInput" placeholder="Cerca allievo o autoscuola..." 
+          <input type="text" id="searchInput" placeholder="Cerca allievo o autoscuola..."
             class="w-full pl-9 pr-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all">
         </div>
         <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
@@ -55,13 +54,15 @@
             <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
+        <button id="openConfigBtn" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
+          <i class="fa-solid fa-sliders"></i> Gestisci Aperture
+        </button>
       </div>
     </div>
   </header>
 
   <!-- Content -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
     <!-- Stats Bar -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -70,10 +71,9 @@
         </div>
         <div>
           <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Slot Totali</span>
-          <p class="text-2xl font-bold text-slate-800" id="statTotal">7</p>
+          <p class="text-2xl font-bold text-slate-800" id="statTotal">0</p>
         </div>
       </div>
-
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
         <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
           <i class="fa-solid fa-user-check"></i>
@@ -83,17 +83,15 @@
           <p class="text-2xl font-bold text-slate-800" id="statBooked">0</p>
         </div>
       </div>
-
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
         <div class="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
           <i class="fa-solid fa-clock"></i>
         </div>
         <div>
           <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Libere</span>
-          <p class="text-2xl font-bold text-slate-800" id="statFree">7</p>
+          <p class="text-2xl font-bold text-slate-800" id="statFree">0</p>
         </div>
       </div>
-
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
         <div class="w-12 h-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
           <i class="fa-solid fa-percent"></i>
@@ -107,7 +105,6 @@
 
     <!-- Timeline Sections -->
     <div class="space-y-6">
-
       <!-- Mattina -->
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
@@ -116,16 +113,14 @@
         </div>
         <div class="divide-y divide-slate-100" id="morningSlots"></div>
       </div>
-
       <!-- Pomeriggio -->
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-cloud-sun text-brand-500"></i>
-          <h2 class="font-bold text-slate-800">Pomeriggio (13:30 - 18:00)</h2>
+          <h2 class="font-bold text-slate-800">Pomeriggio (13:30 - 17:30)</h2>
         </div>
         <div class="divide-y divide-slate-100" id="afternoonSlots"></div>
       </div>
-
     </div>
 
     <!-- Action Bar -->
@@ -134,7 +129,6 @@
         <i class="fa-solid fa-trash"></i> Svuota Giornata
       </button>
     </div>
-
   </main>
 
   <!-- Modal Prenotazione -->
@@ -149,33 +143,24 @@
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-
       <form id="bookingForm" class="p-6 space-y-4">
         <input type="hidden" id="modalTimeSlot">
-
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nome Allievo *</label>
           <input type="text" id="studentName" required placeholder="Es. Mario Rossi"
             class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
         </div>
-
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Autoscuola</label>
           <input type="text" id="schoolName" placeholder="Es. Sede Centrale, Filiale 2..."
             class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
         </div>
-
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Patente</label>
-          <select id="licenseType" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
-            <option value="BE">Patente BE</option>
-            <option value="A / A2 / A1">Patente A / A2 / A1</option>
-            <option value="AM">Patente AM</option>
-            <option value="C / CE">Patente C / CE</option>
-            <option value="D / DE">Patente D / DE</option>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Patente *</label>
+          <select id="licenseType" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            <!-- Opzioni popolate dinamicamente in base alle autorizzazioni dello slot -->
           </select>
         </div>
-
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Stato Prenotazione</label>
           <select id="bookingStatus" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
@@ -184,13 +169,11 @@
             <option value="cancelled">Annullata</option>
           </select>
         </div>
-
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Note (opzionale)</label>
           <textarea id="bookingNotes" rows="2" placeholder="Es. Prima guida, manovre park, aggancio rimorchio..."
             class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm"></textarea>
         </div>
-
         <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
           <button type="button" id="cancelModal" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 text-sm font-medium">
             Annulla
@@ -203,10 +186,36 @@
     </div>
   </div>
 
-    <!-- Firebase integration (Firestore) -->
+  <!-- Modal Configurazione Slot (Regole di Apertura e Patenti) -->
+  <div id="configModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shrink-0">
+        <div>
+          <h3 class="font-bold text-lg">Configurazione Apertura Orari</h3>
+          <p class="text-xs text-slate-400">Abilita/Disabilita gli orari e limita le patenti prenotabili</p>
+        </div>
+        <button id="closeConfigModal" class="text-slate-400 hover:text-white text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto space-y-4 flex-1" id="configSlotsList">
+        <!-- Generato via JavaScript -->
+      </div>
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3 shrink-0">
+        <button type="button" id="cancelConfigModal" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-white text-sm font-medium">
+          Annulla
+        </button>
+        <button type="button" id="saveConfigBtn" class="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 text-sm font-medium shadow-sm">
+          Salva Regole
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase integration (Firestore) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBXXK6mvn4_4eY2NcogvLVhsih0hBDVgPU",
@@ -220,42 +229,32 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    const ALL_LICENSES = ["BE", "A / A2 / A1", "AM", "C / CE", "D / DE"];
+
+    // Configurazione predefinita degli orari
     const SLOTS_CONFIG = [
-      { id: "09:30", label: "90:30 - 10:00", period: "morning" },
-      { id: "09:30", label: "90:30 - 10:00", period: "morning" },
-      { id: "10:00", label: "10:00 - 10:30", period: "morning" },
+      { id: "09:30", label: "09:30 - 10:00", period: "morning" },
       { id: "10:00", label: "10:00 - 10:30", period: "morning" },
       { id: "10:30", label: "10:30 - 11:00", period: "morning" },
-      { id: "10:30", label: "10:30 - 11:00", period: "morning" },
-      { id: "11:00", label: "11:00 - 11:30", period: "morning" },
       { id: "11:00", label: "11:00 - 11:30", period: "morning" },
       { id: "11:30", label: "11:30 - 12:00", period: "morning" },
-      { id: "11:30", label: "11:30 - 12:00", period: "morning" },
-      { id: "12:00", label: "12:00 - 12:30", period: "morning" },
       { id: "12:00", label: "12:00 - 12:30", period: "morning" },
       { id: "12:30", label: "12:30 - 13:00", period: "morning" },
-      { id: "12:30", label: "12:30 - 13:00", period: "morning" },
-      { id: "13:30", label: "13:30 - 14:00", period: "afternoon" },
       { id: "13:30", label: "13:30 - 14:00", period: "afternoon" },
       { id: "14:00", label: "14:00 - 14:30", period: "afternoon" },
-      { id: "14:00", label: "14:00 - 14:30", period: "afternoon" },
-      { id: "14:30", label: "14:30 - 15:00", period: "afternoon" },
       { id: "14:30", label: "14:30 - 15:00", period: "afternoon" },
       { id: "15:00", label: "15:00 - 15:30", period: "afternoon" },
-      { id: "15:00", label: "15:00 - 15:30", period: "afternoon" },
-      { id: "15:30", label: "15:30 - 16:00", period: "afternoon" },
       { id: "15:30", label: "15:30 - 16:00", period: "afternoon" },
       { id: "16:00", label: "16:00 - 16:30", period: "afternoon" },
-      { id: "16:00", label: "16:00 - 16:30", period: "afternoon" },
       { id: "16:30", label: "16:30 - 17:00", period: "afternoon" },
-      { id: "16:30", label: "16:30 - 17:00", period: "afternoon" },
-      { id: "17:00", label: "17:00 - 17:30", period: "afternoon" },
       { id: "17:00", label: "17:00 - 17:30", period: "afternoon" }
     ];
 
     let currentDate = new Date().toISOString().split('T')[0];
     let currentDayBookings = {};
-    let unsubscribe = null;
+    let slotSettings = {}; // Struttura: { "10:00": { enabled: true, allowedLicenses: ["A / A2 / A1", ...] } }
+    let unsubscribeBookings = null;
+    let unsubscribeSettings = null;
 
     const datePicker = document.getElementById('datePicker');
     const searchInput = document.getElementById('searchInput');
@@ -263,16 +262,29 @@
     const afternoonContainer = document.getElementById('afternoonSlots');
     const bookingModal = document.getElementById('bookingModal');
     const bookingForm = document.getElementById('bookingForm');
+    const configModal = document.getElementById('configModal');
 
     datePicker.value = currentDate;
 
-    function listenToDay(date) {
-      if (unsubscribe) unsubscribe(); // Interrompi l'ascolto del giorno precedente
+    // Ascolta la configurazione delle regole sugli slot da Firestore
+    function listenToSettings() {
+      const settingsRef = doc(db, 'settings', 'slots');
+      unsubscribeSettings = onSnapshot(settingsRef, (docSnap) => {
+        if (docSnap.exists()) {
+          slotSettings = docSnap.data();
+        } else {
+          slotSettings = {};
+        }
+        renderAgenda();
+      }, (err) => console.error("Errore lettura impostazioni:", err));
+    }
 
-      // In Firestore salviamo i dati strutturati per data dentro una collezione "bookings"
+    // Ascolta le prenotazioni del giorno da Firestore
+    function listenToDay(date) {
+      if (unsubscribeBookings) unsubscribeBookings();
       const dayRef = doc(db, 'bookings', date);
       
-      unsubscribe = onSnapshot(dayRef, (docSnap) => {
+      unsubscribeBookings = onSnapshot(dayRef, (docSnap) => {
         if (docSnap.exists()) {
           currentDayBookings = docSnap.data();
         } else {
@@ -285,15 +297,28 @@
       });
     }
 
+    function isSlotEnabled(slotId) {
+      if (!slotSettings[slotId]) return true;
+      return slotSettings[slotId].enabled !== false;
+    }
+
+    function getAllowedLicenses(slotId) {
+      if (slotSettings[slotId] && Array.isArray(slotSettings[slotId].allowedLicenses) && slotSettings[slotId].allowedLicenses.length > 0) {
+        return slotSettings[slotId].allowedLicenses;
+      }
+      return ALL_LICENSES;
+    }
+
     function renderAgenda() {
       morningContainer.innerHTML = '';
       afternoonContainer.innerHTML = '';
-
       const filterTerm = searchInput.value.toLowerCase().trim();
 
       SLOTS_CONFIG.forEach(slot => {
         const data = currentDayBookings[slot.id];
         const isBooked = !!data;
+        const enabled = isSlotEnabled(slot.id);
+        const allowedLics = getAllowedLicenses(slot.id);
 
         if (filterTerm && isBooked) {
           const match = data.name.toLowerCase().includes(filterTerm) ||
@@ -308,17 +333,36 @@
         const slotEl = document.createElement('div');
         slotEl.className = "p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-slate-50/80";
 
-        if (!isBooked) {
+        if (!enabled) {
+          // Slot disabilitato / chiuso
+          slotEl.className += " bg-slate-100/60 opacity-75";
           slotEl.innerHTML = `
             <div class="flex items-center gap-4">
+              <span class="font-mono text-sm font-semibold text-slate-400 bg-slate-200 px-2.5 py-1 rounded-md">${slot.label}</span>
+              <span class="text-sm font-medium text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-lock text-xs"></i> Orario non disponibile per prenotazioni
+              </span>
+            </div>
+          `;
+        } else if (!isBooked) {
+          // Slot libero ed abilitato
+          let restrictionsBadge = '';
+          if (allowedLics.length < ALL_LICENSES.length) {
+            restrictionsBadge = `<span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-medium">Solo: ${allowedLics.join(', ')}</span>`;
+          }
+
+          slotEl.innerHTML = `
+            <div class="flex items-center gap-4 flex-wrap">
               <span class="font-mono text-sm font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">${slot.label}</span>
               <span class="text-sm text-slate-400 italic">Nessun allievo prenotato</span>
+              ${restrictionsBadge}
             </div>
             <button type="button" onclick="openBookingModal('${slot.id}')" class="self-start sm:self-auto px-3 py-1.5 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-lg text-xs font-semibold border border-brand-100 transition-all flex items-center gap-1.5">
               <i class="fa-solid fa-plus"></i> Prenota
             </button>
           `;
         } else {
+          // Slot prenotato
           let statusBadge = '';
           switch(data.status) {
             case 'completed':
@@ -330,7 +374,6 @@
             default:
               statusBadge = '<span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">Confermata</span>';
           }
-
           slotEl.innerHTML = `
             <div class="flex items-start sm:items-center gap-4">
               <span class="font-mono text-sm font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md shrink-0">${slot.label}</span>
@@ -354,30 +397,55 @@
             </div>
           `;
         }
-
         if (slot.period === 'morning') morningContainer.appendChild(slotEl);
         else afternoonContainer.appendChild(slotEl);
       });
 
-      const total = SLOTS_CONFIG.length;
+      const enabledSlots = SLOTS_CONFIG.filter(s => isSlotEnabled(s.id));
+      const total = enabledSlots.length;
       const actualBooked = Object.keys(currentDayBookings).length;
+
       document.getElementById('statTotal').innerText = total;
       document.getElementById('statBooked').innerText = actualBooked;
-      document.getElementById('statFree').innerText = total - actualBooked;
-      document.getElementById('statOccupancy').innerText = Math.round((actualBooked / total) * 100) + '%';
+      document.getElementById('statFree').innerText = Math.max(0, total - actualBooked);
+      document.getElementById('statOccupancy').innerText = total > 0 ? Math.round((actualBooked / total) * 100) + '%' : '0%';
     }
 
+    // Modal Prenotazione
     window.openBookingModal = function(timeSlot) {
+      if (!isSlotEnabled(timeSlot)) {
+        alert("Questo orario è stato disabilitato per le prenotazioni.");
+        return;
+      }
+
       document.getElementById('modalTimeSlot').value = timeSlot;
       const existing = currentDayBookings[timeSlot];
-      
       const slotObj = SLOTS_CONFIG.find(s => s.id === timeSlot);
       document.getElementById('modalSub').innerText = `Ora: ${slotObj.label} del ${currentDate}`;
+
+      // Popola la select delle patenti filtrate per questo orario
+      const allowed = getAllowedLicenses(timeSlot);
+      const licenseSelect = document.getElementById('licenseType');
+      licenseSelect.innerHTML = '';
+      
+      allowed.forEach(lic => {
+        const opt = document.createElement('option');
+        opt.value = lic;
+        opt.textContent = `Patente ${lic}`;
+        licenseSelect.appendChild(opt);
+      });
 
       if (existing) {
         document.getElementById('studentName').value = existing.name;
         document.getElementById('schoolName').value = existing.school || '';
-        document.getElementById('licenseType').value = existing.license;
+        // Se la patente salvata precedentemente non fosse più tra le consentite, la aggiungiamo temporaneamente per visualizzazione
+        if (!allowed.includes(existing.license)) {
+          const opt = document.createElement('option');
+          opt.value = existing.license;
+          opt.textContent = `Patente ${existing.license}`;
+          licenseSelect.appendChild(opt);
+        }
+        licenseSelect.value = existing.license;
         document.getElementById('bookingStatus').value = existing.status || 'confirmed';
         document.getElementById('bookingNotes').value = existing.notes || '';
       } else {
@@ -392,12 +460,9 @@
       if (confirm("Vuoi cancellare questa prenotazione?")) {
         delete currentDayBookings[timeSlot];
         try {
-          await setDoc(doc(db, 'bookings', currentDate), currentDayProviderPayload());
+          await setDoc(doc(db, 'bookings', currentDate), currentDayBookings);
         } catch (e) {
-          // Salva aggiornato su Firestore rimuovendo il singolo slot
-          const updated = { ...currentDayBookings };
-          delete updated[timeSlot];
-          await setDoc(doc(db, 'bookings', currentDate), updated);
+          console.error("Errore nella cancellazione:", e);
         }
       }
     }
@@ -418,11 +483,79 @@
         await setDoc(doc(db, 'bookings', currentDate), currentDayBookings);
         bookingModal.classList.add('hidden');
       } catch (err) {
-        console.error("Errore durante il salvataggio su Firestore:", err);
+        console.error("Errore salvataggio:", err);
         alert("Errore nel salvataggio. Controlla la console.");
       }
     });
 
+    // Gestione Modal Configurazione Slot
+    document.getElementById('openConfigBtn').addEventListener('click', () => {
+      const container = document.getElementById('configSlotsList');
+      container.innerHTML = '';
+
+      SLOTS_CONFIG.forEach(slot => {
+        const enabled = isSlotEnabled(slot.id);
+        const allowedLics = getAllowedLicenses(slot.id);
+
+        const card = document.createElement('div');
+        card.className = "p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-3";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <i class="fa-regular fa-clock text-brand-600"></i> ${slot.label}
+            </span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer config-enable-toggle" data-slot="${slot.id}" ${enabled ? 'checked' : ''}>
+              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+              <span class="ml-2 text-xs font-semibold text-slate-600">${enabled ? 'Aperto' : 'Chiuso'}</span>
+            </label>
+          </div>
+          <div>
+            <span class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Patenti Ammesse:</span>
+            <div class="flex flex-wrap gap-2">
+              ${ALL_LICENSES.map(lic => {
+                const checked = allowedLics.includes(lic);
+                return `
+                  <label class="inline-flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer hover:bg-slate-100 transition-colors">
+                    <input type="checkbox" value="${lic}" class="config-lic-checkbox data-slot-${slot.id} rounded text-brand-600 focus:ring-brand-500" ${checked ? 'checked' : ''}>
+                    ${lic}
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      configModal.classList.remove('hidden');
+    });
+
+    document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+      const newSettings = {};
+      SLOTS_CONFIG.forEach(slot => {
+        const enableToggle = document.querySelector(`.config-enable-toggle[data-slot="${slot.id}"]`);
+        const licCheckboxes = document.querySelectorAll(`.config-lic-checkbox.data-slot-${slot.id}:checked`);
+        
+        const enabled = enableToggle ? enableToggle.checked : true;
+        const allowedLicenses = Array.from(licCheckboxes).map(cb => cb.value);
+
+        newSettings[slot.id] = {
+          enabled: enabled,
+          allowedLicenses: allowedLicenses.length === 0 ? ALL_LICENSES : allowedLicenses
+        };
+      });
+
+      try {
+        await setDoc(doc(db, 'settings', 'slots'), newSettings);
+        configModal.classList.add('hidden');
+      } catch (err) {
+        console.error("Errore nel salvataggio della configurazione:", err);
+        alert("Si è verificato un errore durante il salvataggio.");
+      }
+    });
+
+    // Date navigation & modal closers
     datePicker.addEventListener('change', (e) => {
       currentDate = e.target.value;
       listenToDay(currentDate);
@@ -445,9 +578,10 @@
     });
 
     searchInput.addEventListener('input', renderAgenda);
-
     document.getElementById('closeModal').addEventListener('click', () => bookingModal.classList.add('hidden'));
     document.getElementById('cancelModal').addEventListener('click', () => bookingModal.classList.add('hidden'));
+    document.getElementById('closeConfigModal').addEventListener('click', () => configModal.classList.add('hidden'));
+    document.getElementById('cancelConfigModal').addEventListener('click', () => configModal.classList.add('hidden'));
 
     document.getElementById('clearDayBtn').addEventListener('click', async () => {
       if (confirm(`Sei sicuro di voler cancellare tutte le prenotazioni del ${currentDate}?`)) {
@@ -460,8 +594,9 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
+    // Inizializzazione
+    listenToSettings();
     listenToDay(currentDate);
   </script>
-
 </body>
 </html>
